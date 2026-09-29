@@ -92,10 +92,10 @@ The "Design preview for The Pipkin Law Firm, prepared by GNYZ." strip is a singl
 
 ## Hero video
 
-The homepage hero plays `assets/video/hero.mp4` (H.264 High, level 4.0, 1.9 MB), with `hero.webm` (VP9 profile 0, 0.9 MB) as a fallback. Both are 1920×1080, 8-bit, 9.4 seconds, silent, and loop. Tested playing and looping in iOS Safari (iPhone simulator) and Android Chrome. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. Visitors with "reduce motion" turned on see only the poster.
+The homepage hero plays `assets/video/hero.mp4` (H.264 High, level 4.0, 1.9 MB), with `hero.webm` (VP9 profile 0, 0.9 MB) as a fallback. Both are 1920×1080, 8-bit, 9.4 seconds, silent, and loop. Tested playing and looping in iOS Safari (iPhone simulator) and Android Chrome. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. The same video runs on the homepage and the Spanish page, and it plays for everyone, including visitors with "reduce motion" turned on. To show only the poster for those visitors, set `PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION = true` at the top of `js/main.js`.
 
 - **Navy overlay:** it's the `.hero::before` gradient in section 7 of `styles.css`. Raise or lower the alpha values to darken or lighten it (the left side is darker so the headline reads).
-- **Mobile compatibility (important):** keep the MP4 listed first. iOS Safari picks the first source it thinks it might support and won't fall back if decoding fails. Keep both files 8-bit (`-pix_fmt yuv420p`); 10-bit video, which the original HEVC export was, doesn't play on most phones. If autoplay is blocked (iOS Low Power Mode, Android Data Saver), `main.js` starts the video on the visitor's first tap or scroll. With "reduce motion" turned on, the poster is shown instead, by design.
+- **Mobile compatibility (important):** keep the MP4 listed first. iOS Safari picks the first source it thinks it might support and won't fall back if decoding fails. Keep both files 8-bit (`-pix_fmt yuv420p`); 10-bit video, which the original HEVC export was, doesn't play on most phones. If autoplay is blocked (iOS Low Power Mode, Android Data Saver), `main.js` starts the video on the visitor's first tap or scroll.
 - **Framing:** `.hero__media { object-position: center 40%; }` controls the crop.
 - **Replacing the video:** export a new clip (MP4 H.264 + WebM, 1920×1080, under 5 MB, 15–30 second loop, no audio), overwrite the two files, and re-export the first frame as `hero-poster.webp`. These commands do all three from a source file:
 
@@ -108,8 +108,6 @@ ffmpeg -i source.mp4 -an -c:v libvpx-vp9 -profile:v 0 -pix_fmt yuv420p -crf 40 -
 ```bash
 ffmpeg -i source.mp4 -frames:v 1 poster.png && cwebp -q 72 poster.png -o assets/video/hero-poster.webp
 ```
-
-`es/index.html` has the same hero with its `<source>` lines still commented out. Uncomment them (and switch its poster to `/assets/video/hero-poster.webp`) to use the video there too.
 
 ## Adding a team member
 

@@ -12,6 +12,10 @@
   // Turn the scroll-reveal animation on/off site-wide.
   var ENABLE_SCROLL_REVEAL = true;
 
+  // Hero video plays for everyone, including visitors with "reduce motion"
+  // turned on. Set to true to show only the poster image for those visitors.
+  var PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION = false;
+
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 
@@ -112,9 +116,9 @@
 
 
   /* ------------------------------------------------------------------------
-     Hero video.
-     - prefers-reduced-motion: stop autoplay so only the poster shows.
-     - Otherwise, make sure it actually plays on phones. iOS Low Power Mode
+     Hero video (homepage and Spanish page).
+     - Plays for everyone unless PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION is true.
+     - Makes sure it actually plays on phones. iOS Low Power Mode
        and Android Data Saver can block autoplay; when that happens, start
        the video on the visitor's first tap or scroll instead.
      ------------------------------------------------------------------------ */
@@ -122,7 +126,7 @@
     var video = document.querySelector(".hero__media");
     if (!video) return;
 
-    if (prefersReducedMotion) {
+    if (PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION && prefersReducedMotion) {
       video.removeAttribute("autoplay");
       video.pause();
       return;
