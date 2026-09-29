@@ -112,14 +112,48 @@
 
 
   /* ------------------------------------------------------------------------
-     Hero video: with prefers-reduced-motion, stop autoplay so only the
-     poster image shows.
+     Hero video.
+     - prefers-reduced-motion: stop autoplay so only the poster shows.
+     - Otherwise, make sure it actually plays on phones. iOS Low Power Mode
+       and Android Data Saver can block autoplay; when that happens, start
+       the video on the visitor's first tap or scroll instead.
      ------------------------------------------------------------------------ */
   function initHeroVideo() {
     var video = document.querySelector(".hero__media");
-    if (!video || !prefersReducedMotion) return;
-    video.removeAttribute("autoplay");
-    video.pause();
+    if (!video) return;
+
+    if (prefersReducedMotion) {
+      video.removeAttribute("autoplay");
+      video.pause();
+      return;
+    }
+
+    // Set these as properties too: some mobile browsers only honor the
+    // property, not the attribute, when deciding whether autoplay is allowed.
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    function tryPlay() {
+      var attempt = video.play();
+      return attempt && attempt.catch ? attempt : Promise.resolve();
+    }
+
+    tryPlay().catch(function () {
+      // Autoplay was blocked: retry on the first user interaction.
+      var events = ["touchstart", "click", "scroll", "keydown"];
+      function resume() {
+        tryPlay().then(function () {
+          events.forEach(function (e) { window.removeEventListener(e, resume); });
+        }).catch(function () { /* still blocked: poster stays */ });
+      }
+      events.forEach(function (e) { window.addEventListener(e, resume, { passive: true }); });
+    });
+
+    // Resume if the phone paused it while the tab was in the background
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && video.paused) tryPlay().catch(function () {});
+    });
   }
 
 

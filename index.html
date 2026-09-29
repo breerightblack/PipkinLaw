@@ -160,17 +160,21 @@
 <main id="main">
 
   <!-- ===== HERO VIDEO =================================================
-       9-second silent loop (1920x1080). WebM (VP9) loads first where
-       supported, with H.264 MP4 as the fallback. The poster is the video's
-       first frame, so there's no jump when playback starts.
+       9-second silent loop (1920x1080, 8-bit). MP4 (H.264 High, level 4.0)
+       is listed FIRST because every iPhone and Android phone can decode it;
+       WebM (VP9 profile 0) is a smaller fallback. Keep this order: iOS
+       Safari picks the first source it "maybe" supports and won't fall back
+       if decoding fails. `muted` + `playsinline` are required for autoplay
+       on iOS. The poster is the video's first frame, so there's no jump
+       when playback starts.
        The navy overlay is the .hero::before gradient in styles.css
        (section 7); adjust its opacity there to lighten or darken it.
        With prefers-reduced-motion, main.js stops autoplay (poster only).
        ================================================================== -->
   <section class="hero" aria-labelledby="hero-heading">
     <video class="hero__media" autoplay muted loop playsinline preload="auto" poster="/assets/video/hero-poster.webp" aria-hidden="true">
-      <source src="/assets/video/hero.webm" type="video/webm">
-      <source src="/assets/video/hero.mp4" type="video/mp4">
+      <source src="/assets/video/hero.mp4" type='video/mp4; codecs="avc1.640028"'>
+      <source src="/assets/video/hero.webm" type='video/webm; codecs="vp9"'>
     </video>
     <div class="container">
       <div class="hero__content">

@@ -92,17 +92,18 @@ The "Design preview for The Pipkin Law Firm, prepared by GNYZ." strip is a singl
 
 ## Hero video
 
-The homepage hero plays `assets/video/hero.webm` (VP9, 0.9 MB), falling back to `hero.mp4` (H.264, 1.9 MB). Both are 1920×1080, 9.4 seconds, silent, and loop. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. Visitors with "reduce motion" turned on see only the poster.
+The homepage hero plays `assets/video/hero.mp4` (H.264 High, level 4.0, 1.9 MB), with `hero.webm` (VP9 profile 0, 0.9 MB) as a fallback. Both are 1920×1080, 8-bit, 9.4 seconds, silent, and loop. Tested playing and looping in iOS Safari (iPhone simulator) and Android Chrome. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. Visitors with "reduce motion" turned on see only the poster.
 
 - **Navy overlay:** it's the `.hero::before` gradient in section 7 of `styles.css`. Raise or lower the alpha values to darken or lighten it (the left side is darker so the headline reads).
+- **Mobile compatibility (important):** keep the MP4 listed first. iOS Safari picks the first source it thinks it might support and won't fall back if decoding fails. Keep both files 8-bit (`-pix_fmt yuv420p`); 10-bit video, which the original HEVC export was, doesn't play on most phones. If autoplay is blocked (iOS Low Power Mode, Android Data Saver), `main.js` starts the video on the visitor's first tap or scroll. With "reduce motion" turned on, the poster is shown instead, by design.
 - **Framing:** `.hero__media { object-position: center 40%; }` controls the crop.
 - **Replacing the video:** export a new clip (MP4 H.264 + WebM, 1920×1080, under 5 MB, 15–30 second loop, no audio), overwrite the two files, and re-export the first frame as `hero-poster.webp`. These commands do all three from a source file:
 
 ```bash
-ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart assets/video/hero.mp4
+ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -profile:v high -level:v 4.0 -movflags +faststart assets/video/hero.mp4
 ```
 ```bash
-ffmpeg -i source.mp4 -an -c:v libvpx-vp9 -crf 40 -b:v 0 -row-mt 1 assets/video/hero.webm
+ffmpeg -i source.mp4 -an -c:v libvpx-vp9 -profile:v 0 -pix_fmt yuv420p -crf 40 -b:v 0 -row-mt 1 assets/video/hero.webm
 ```
 ```bash
 ffmpeg -i source.mp4 -frames:v 1 poster.png && cwebp -q 72 poster.png -o assets/video/hero-poster.webp
