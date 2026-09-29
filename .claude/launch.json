@@ -4,7 +4,10 @@
     {
       "name": "pipkin-preview",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8080"],
+      "runtimeArgs": [
+        "scripts/serve.py",
+        "8080"
+      ],
       "port": 8080
     }
   ]

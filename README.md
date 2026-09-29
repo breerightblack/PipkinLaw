@@ -34,8 +34,10 @@ Links are root-relative (`/css/styles.css`), so opening the files straight from 
 cd /Users/brianna/Pipkin.Preview
 ```
 ```bash
-python3 -m http.server 8080
+python3 scripts/serve.py
 ```
+
+Use `scripts/serve.py` rather than `python3 -m http.server`. The built-in server doesn't support byte-range requests, so the hero video can't seek back to the start and the loop stalls. `serve.py` has no dependencies and behaves like Netlify.
 
 Then open http://localhost:8080.
 
@@ -64,8 +66,9 @@ css/styles.css             Every style, with design tokens at the top
 js/main.js                 Menu, dropdown, count-up, scroll reveal, filters, year
 js/carousel.js             Team carousel only (Slick 1.8.1 + jQuery from jsDelivr)
 scripts/fetch-images.sh    Re-downloads and compresses the firm's photos
+scripts/serve.py           Local preview server (supports video seeking)
 assets/images/             Local copies of the firm's images
-assets/video/              Empty; the hero video goes here
+assets/video/              Hero video (hero.webm, hero.mp4) + poster frame
 netlify.toml               Publish settings + noindex header
 ```
 
@@ -87,15 +90,25 @@ The Spanish page reuses the English header and footer so the blocks stay identic
 
 The "Design preview for The Pipkin Law Firm, prepared by GNYZ." strip is a single `<div class="demo-banner">` inside the header block. Visitors can dismiss it (it stays dismissed in their browser). To remove it for good, delete the div, or uncomment `.demo-banner { display: none !important; }` in section 5 of the CSS.
 
-## Adding the hero video
+## Hero video
 
-1. Export two files and put them in `/assets/video/`:
-   - `hero.mp4`: H.264
-   - `hero.webm`: VP9
-   - Both: 1920×1080, **under 5 MB**, a 15–30 second seamless loop, **no audio track**
-2. In `index.html` (and `es/index.html`), find the `<video class="hero__media">` tag and uncomment the two `<source>` lines.
+The homepage hero plays `assets/video/hero.webm` (VP9, 0.9 MB), falling back to `hero.mp4` (H.264, 1.9 MB). Both are 1920×1080, 9.4 seconds, silent, and loop. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. Visitors with "reduce motion" turned on see only the poster.
 
-The poster (`truckwreck01.webp`) shows until the video loads, and it's all that shows for visitors with "reduce motion" turned on. **Note:** the poster is only 381×410 on the current site, so it looks soft at full width. Ask the firm for a higher-resolution original or use the video.
+- **Navy overlay:** it's the `.hero::before` gradient in section 7 of `styles.css`. Raise or lower the alpha values to darken or lighten it (the left side is darker so the headline reads).
+- **Framing:** `.hero__media { object-position: center 40%; }` controls the crop.
+- **Replacing the video:** export a new clip (MP4 H.264 + WebM, 1920×1080, under 5 MB, 15–30 second loop, no audio), overwrite the two files, and re-export the first frame as `hero-poster.webp`. These commands do all three from a source file:
+
+```bash
+ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -movflags +faststart assets/video/hero.mp4
+```
+```bash
+ffmpeg -i source.mp4 -an -c:v libvpx-vp9 -crf 40 -b:v 0 -row-mt 1 assets/video/hero.webm
+```
+```bash
+ffmpeg -i source.mp4 -frames:v 1 poster.png && cwebp -q 72 poster.png -o assets/video/hero-poster.webp
+```
+
+`es/index.html` has the same hero with its `<source>` lines still commented out. Uncomment them (and switch its poster to `/assets/video/hero-poster.webp`) to use the video there too.
 
 ## Adding a team member
 
