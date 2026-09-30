@@ -105,7 +105,8 @@ The phone cut exists because a tall, narrow screen crops the wide video down to 
 - **No `autoplay`, and `preload="none"`, in the HTML, on purpose.** iOS Safari picks a `<source>` while the page is still loading, before `media=""` queries are reliable, and would load the wide cut on iPhones. `main.js` calls `load()` once the page is ready, so the right cut loads, and only once. It also swaps in the phone poster, reloads the right cut when a phone or tablet rotates, and starts playback on the first tap or scroll if autoplay is blocked (iOS Low Power Mode, Android Data Saver).
 - **MP4 is listed before WebM within each cut.** iOS Safari won't fall back from a source it fails to decode.
 - **The media query appears in two places:** the `media=""` on the `hero-mobile` `<source>` tags, and `HERO_MOBILE_QUERY` in `main.js`. Keep them identical.
-- **Navy overlay:** removed, so the video shows at full color. The original gradient is commented out as `.hero::before` in section 7 of `styles.css`; uncomment it to restore. **Framing:** `.hero__media { object-position }` (center 40% on desktop, center 15% for the phone cut on tablets).
+- **Navy overlay:** removed, so the video shows at full color. The original gradient is commented out as `.hero::before` in section 7 of `styles.css`; uncomment it to restore.
+- **Hero text:** with no overlay, the video has both near-black and near-white areas behind the text in every frame, so no single text color works. The text stays white with a soft navy shadow (`--hero-text-shadow` in `:root`), and the "Text us" button gets a see-through navy fill. Strengthen the shadow there if a new video is brighter. **Framing:** `.hero__media { object-position }` (center 40% on desktop, center 15% for the phone cut on tablets).
 
 **Replacing the video.** Export a new clip (1920×1080, under 5 MB, 15–30 second loop, no audio), then from the project root:
 
