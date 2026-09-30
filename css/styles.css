@@ -586,7 +586,9 @@ body.menu-open { overflow: hidden; }
 @media (max-width: 991px) and (orientation: portrait) {
   .hero__media { object-position: center 15%; }
 }
-/* Navy gradient overlay, darker on the left where the text sits */
+/* Navy gradient overlay: REMOVED (video shows at full color).
+   To bring it back, uncomment this rule. Without it, white hero text sits
+   directly on the video and can be hard to read over bright scenes.
 .hero::before {
   content: "";
   position: absolute;
@@ -596,6 +598,7 @@ body.menu-open { overflow: hidden; }
     linear-gradient(90deg, rgba(15, 26, 48, 0.95) 0%, rgba(27, 43, 77, 0.85) 45%, rgba(27, 43, 77, 0.45) 100%),
     linear-gradient(0deg, rgba(15, 26, 48, 0.6) 0%, rgba(15, 26, 48, 0) 40%);
 }
+*/
 .hero__content { max-width: 44rem; }
 .hero h1 { color: var(--white); margin-bottom: var(--space-lg); }
 .hero__sub {
