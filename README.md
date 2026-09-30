@@ -68,7 +68,7 @@ js/carousel.js             Team carousel only (Slick 1.8.1 + jQuery from jsDeliv
 scripts/fetch-images.sh    Re-downloads and compresses the firm's photos
 scripts/serve.py           Local preview server (supports video seeking)
 assets/images/             Local copies of the firm's images
-assets/video/              Hero video (hero.webm, hero.mp4) + poster frame
+assets/video/              Hero video: wide + phone cuts, MP4 + WebM, posters
 netlify.toml               Publish settings + noindex header
 ```
 
@@ -92,12 +92,22 @@ The "Design preview for The Pipkin Law Firm, prepared by GNYZ." strip is a singl
 
 ## Hero video
 
-The homepage hero plays `assets/video/hero.mp4` (H.264 High, level 4.0, 1.9 MB), with `hero.webm` (VP9 profile 0, 0.9 MB) as a fallback. Both are 1920×1080, 8-bit, 9.4 seconds, silent, and loop. Tested playing and looping in iOS Safari (iPhone simulator) and Android Chrome. They were encoded from the original 16 MB HEVC file, which Chrome and Firefox often can't play. The poster, `hero-poster.webp`, is the video's first frame, so nothing jumps when playback starts. The same video runs on the homepage and the Spanish page, and it plays for everyone, including visitors with "reduce motion" turned on. To show only the poster for those visitors, set `PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION = true` at the top of `js/main.js`.
+The homepage and Spanish page share one 9.4-second silent loop, in two cuts:
 
-- **Navy overlay:** it's the `.hero::before` gradient in section 7 of `styles.css`. Raise or lower the alpha values to darken or lighten it (the left side is darker so the headline reads).
-- **Mobile compatibility (important):** keep the MP4 listed first. iOS Safari picks the first source it thinks it might support and won't fall back if decoding fails. Keep both files 8-bit (`-pix_fmt yuv420p`); 10-bit video, which the original HEVC export was, doesn't play on most phones. If autoplay is blocked (iOS Low Power Mode, Android Data Saver), `main.js` starts the video on the visitor's first tap or scroll.
-- **Framing:** `.hero__media { object-position: center 40%; }` controls the crop.
-- **Replacing the video:** export a new clip (MP4 H.264 + WebM, 1920×1080, under 5 MB, 15–30 second loop, no audio), overwrite the two files, and re-export the first frame as `hero-poster.webp`. These commands do all three from a source file:
+| Cut | Files | Who gets it |
+|---|---|---|
+| Wide (original) | `hero.mp4` (1.9 MB), `hero.webm` (0.9 MB), 1920×1080 | Desktop, landscape tablets and phones |
+| Phone | `hero-mobile.mp4` (0.9 MB), `hero-mobile.webm` (0.4 MB), 608×1080 | Phones and portrait tablets: `(max-width: 991px) and (orientation: portrait)` |
+
+The phone cut exists because a tall, narrow screen crops the wide video down to its middle third, hiding two of the three people in the opening panel shot. The phone cut shows each person full-screen for 1.4 seconds (looking at the phone, raising it, calling), then Steve, reframed to stay centered. Posters (`hero-poster.webp`, `hero-mobile-poster.webp`) are each cut's first frame. Everything is 8-bit H.264 High level 4.0 / VP9 profile 0, and has been tested playing and looping in iOS Safari (iPhone simulator) and Android Chrome. The video plays for everyone, including visitors with "reduce motion" on (set `PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION = true` in `js/main.js` to show only the poster for them).
+
+**How it's wired (don't "simplify" this):**
+- **No `autoplay`, and `preload="none"`, in the HTML, on purpose.** iOS Safari picks a `<source>` while the page is still loading, before `media=""` queries are reliable, and would load the wide cut on iPhones. `main.js` calls `load()` once the page is ready, so the right cut loads, and only once. It also swaps in the phone poster, reloads the right cut when a phone or tablet rotates, and starts playback on the first tap or scroll if autoplay is blocked (iOS Low Power Mode, Android Data Saver).
+- **MP4 is listed before WebM within each cut.** iOS Safari won't fall back from a source it fails to decode.
+- **The media query appears in two places:** the `media=""` on the `hero-mobile` `<source>` tags, and `HERO_MOBILE_QUERY` in `main.js`. Keep them identical.
+- **Navy overlay:** the `.hero::before` gradient in section 7 of `styles.css`. **Framing:** `.hero__media { object-position }` (center 40% on desktop, center 15% for the phone cut on tablets).
+
+**Replacing the video.** Export a new clip (1920×1080, under 5 MB, 15–30 second loop, no audio), then from the project root:
 
 ```bash
 ffmpeg -i source.mp4 -an -c:v libx264 -preset slow -crf 25 -pix_fmt yuv420p -profile:v high -level:v 4.0 -movflags +faststart assets/video/hero.mp4
@@ -108,6 +118,8 @@ ffmpeg -i source.mp4 -an -c:v libvpx-vp9 -profile:v 0 -pix_fmt yuv420p -crf 40 -
 ```bash
 ffmpeg -i source.mp4 -frames:v 1 poster.png && cwebp -q 72 poster.png -o assets/video/hero-poster.webp
 ```
+
+The phone cut has to be re-edited by hand for a new clip. The current one uses `trim` + `crop` on frames 20–54 (left panel, x=15), 46–80 (middle, x=641), 68–102 (right, x=1283) and 102–end (Steve, x=796), each cropped to 608×1080 and joined with `concat`. Keep it the same length as the wide cut.
 
 ## Adding a team member
 

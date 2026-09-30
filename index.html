@@ -160,11 +160,20 @@
 <main id="main">
 
   <!-- ===== HERO VIDEO =================================================
-       9-second silent loop (1920x1080, 8-bit). MP4 (H.264 High, level 4.0)
-       is listed FIRST because every iPhone and Android phone can decode it;
-       WebM (VP9 profile 0) is a smaller fallback. Keep this order: iOS
-       Safari picks the first source it "maybe" supports and won't fall back
-       if decoding fails. `muted` + `playsinline` are required for autoplay
+       9-second silent loop, in two cuts:
+         - hero-mobile.*  608x1080 vertical cut for phones and portrait
+           tablets (the `media` attribute on its <source> tags). Shows each
+           of the three people full-screen in turn, then Steve centered.
+         - hero.*         1920x1080 original for desktop and landscape.
+       Within each cut, MP4 (H.264 High, level 4.0) is listed FIRST because
+       every iPhone and Android phone can decode it; WebM (VP9 profile 0) is
+       a smaller fallback. Keep this order: iOS Safari picks the first
+       source it "maybe" supports and won't fall back if decoding fails.
+       Keep the media query in sync with HERO_MOBILE_QUERY in main.js.
+       No `autoplay` and preload="none" ON PURPOSE: iOS Safari picks a
+       <source> while the page is still loading, before `media` queries are
+       reliable, and would load the wide cut on iPhones. main.js starts the
+       video once the page is ready, so the right cut loads (only once). `muted` + `playsinline` are required for autoplay
        on iOS. The poster is the video's first frame, so there's no jump
        when playback starts.
        The navy overlay is the .hero::before gradient in styles.css
@@ -173,7 +182,11 @@
        PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION switch at the top of main.js.
        ================================================================== -->
   <section class="hero" aria-labelledby="hero-heading">
-    <video class="hero__media" autoplay muted loop playsinline preload="auto" poster="/assets/video/hero-poster.webp" aria-hidden="true">
+    <video class="hero__media" muted loop playsinline preload="none" poster="/assets/video/hero-poster.webp" data-poster-mobile="/assets/video/hero-mobile-poster.webp" aria-hidden="true">
+      <!-- Phones + portrait tablets: vertical cut that shows each person full-screen -->
+      <source src="/assets/video/hero-mobile.mp4" type='video/mp4; codecs="avc1.640028"' media="(max-width: 991px) and (orientation: portrait)">
+      <source src="/assets/video/hero-mobile.webm" type='video/webm; codecs="vp9"' media="(max-width: 991px) and (orientation: portrait)">
+      <!-- Desktop + landscape: the original wide video -->
       <source src="/assets/video/hero.mp4" type='video/mp4; codecs="avc1.640028"'>
       <source src="/assets/video/hero.webm" type='video/webm; codecs="vp9"'>
     </video>

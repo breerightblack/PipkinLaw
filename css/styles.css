@@ -581,6 +581,11 @@ body.menu-open { overflow: hidden; }
   object-fit: cover;
   object-position: center 40%;
 }
+/* Phone/portrait-tablet cut (hero-mobile.*): keep faces in frame on
+   tablets, where the hero is wider than the vertical video. */
+@media (max-width: 991px) and (orientation: portrait) {
+  .hero__media { object-position: center 15%; }
+}
 /* Navy gradient overlay, darker on the left where the text sits */
 .hero::before {
   content: "";

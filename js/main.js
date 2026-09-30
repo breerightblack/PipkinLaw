@@ -16,6 +16,10 @@
   // turned on. Set to true to show only the poster image for those visitors.
   var PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION = false;
 
+  // Which visitors get the vertical phone cut of the hero video. Must match
+  // the media="" attribute on the hero-mobile <source> tags in the HTML.
+  var HERO_MOBILE_QUERY = "(max-width: 991px) and (orientation: portrait)";
+
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 
@@ -127,10 +131,23 @@
     if (!video) return;
 
     if (PAUSE_HERO_VIDEO_FOR_REDUCED_MOTION && prefersReducedMotion) {
-      video.removeAttribute("autoplay");
-      video.pause();
-      return;
+      return; // poster only (the HTML never autoplays on its own)
     }
+
+    // Phone cut: use its matching poster, and if the visitor rotates between
+    // portrait and landscape, reload so the browser picks the other cut.
+    var mobileQuery = window.matchMedia(HERO_MOBILE_QUERY);
+    var desktopPoster = video.getAttribute("poster");
+    var mobilePoster = video.getAttribute("data-poster-mobile");
+    function setPoster() {
+      if (mobilePoster) video.poster = mobileQuery.matches ? mobilePoster : desktopPoster;
+    }
+    setPoster();
+    mobileQuery.addEventListener("change", function () {
+      setPoster();
+      video.load();
+      tryPlay().catch(function () {});
+    });
 
     // Set these as properties too: some mobile browsers only honor the
     // property, not the attribute, when deciding whether autoplay is allowed.
@@ -142,6 +159,14 @@
       var attempt = video.play();
       return attempt && attempt.catch ? attempt : Promise.resolve();
     }
+
+    // Start loading now that the page (and its stylesheet) is ready, so the
+    // browser evaluates each <source media=""> correctly and picks the right
+    // cut. The HTML uses preload="none" and no autoplay so nothing loads
+    // before this point.
+    video.autoplay = true;
+    video.preload = "auto";
+    video.load();
 
     tryPlay().catch(function () {
       // Autoplay was blocked: retry on the first user interaction.
